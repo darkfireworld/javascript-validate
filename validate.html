@@ -1,0 +1,100 @@
+﻿<html>	
+	<head>
+		<script src="jquery.js"></script>
+		<script src="jquery.validate.js"></script>
+		<script type="text/javascript">
+		$(function(){
+			/*创建一个 验证实例*/
+			var $vTable = $.validate.build('form');
+			
+			//配置DIV验证和结果搜集以及结果处理
+			//过滤器
+			//以下的API都可以被注入到全局中 $.validate.filter()
+			$vTable.filter('@MyDiv',function(){
+				/*
+					this 为当前被验证的对象
+					因为val-> $(this).val();
+				*/
+				var val = this.html();
+				if(/\S+/.test(val))
+					return true;
+				return 'DIV的内容怎么可以为空呢?';
+				
+			},'DIV内容不能为空');
+			
+			
+			//handler
+			$vTable.handler('@MyDiv',function(index,msg){
+				/*
+					this 为当前被验证的对象
+					
+					index:-1表示验证通过, 否则 0-N 表示第几个验证出错
+					msg: 验证失败提供的消息
+					
+				*/
+				//成功不进行处理
+				if(index == -1)
+					return;
+				//验证失败, 则提示
+				alert(msg);
+			});
+			//结果搜集
+			$vTable.result('@MyDiv',function(result){
+				
+				 /*
+					this 为当前被验证的对象
+					
+					result->结果组合
+				 */
+				var val = this.html();
+				result.mydiv = val;
+
+			});
+			
+			
+			$('#test').click(function(){
+				//$vTable.fire() -> 构造一个结果
+				alert(JSON.stringify($vTable.fire()));
+			
+			});
+		});
+		</script>
+	</head>
+	
+	<body>
+	
+		<div id="form">
+			<table>
+				<tr>
+					<td>any（必须）<input id="a"  validate="{filter:' @Default->   @NotNull'}"/></td>
+				</tr>
+				<tr>
+					<td>邮箱1（必须）<input id="b"  validate="{filter:['@Default->@NotNull','@Default->  @Email  ']}"/></td>
+				</tr>
+				<tr>
+					<td>邮箱2(非必须)<input id="c.c"  validate="{filter:['@Email`自定义邮箱提示信息']}"/></td>
+				</tr>
+				<tr>
+					<td>选择(必须)<select id="vv"  validate="{filter:' @NotNull`select不能为空'}">
+						<option></option>
+						<option >AAAAAAA</option>
+						<option >BBBBBBB</option>
+					
+					</select></td>
+				</tr>
+				<tr>
+					<!-- redirect 是转发本次验证到 指定ID的控件上 -->
+					<td><div id="radio" validate="{filter:' @Radio ->@NotNull` 请选择 radio1 radio2',result:' @Radio->@Default'}"/>
+						<label> <input validate="{redirect:'radio'}" name="test" type="radio" value="radio1"/> radio1</label>
+						<label> <input  validate="{redirect:'radio'}"  name="test" type="radio" value="radio2"/> radio2</label>
+					</div>
+					<label> <input  validate="{redirect:'radio'}"  name="test" type="radio" value="会出错的选项"/> 会出错的选项</label></td>
+				</tr>
+				<tr>
+					<td><div contentEditable="true" validate="{filter:'@MyDiv',handler:'@MyDiv', result:'@MyDiv'}"  style="BORDER-RIGHT: #999999 1px solid; PADDING-RIGHT: 3px; BORDER-TOP: #999999 1px solid; OVERFLOW-Y: auto; PADDING-LEFT: 3px; FONT-WEIGHT: normal; FONT-SIZE: 12px; OVERFLOW-X: hidden; PADDING-BOTTOM: 3px; BORDER-LEFT: #999999 1px solid; WIDTH: 380px; COLOR: #000066; WORD-BREAK: break-all; PADDING-TOP: 3px; BORDER-BOTTOM: #999999 1px solid; FONT-STYLE: normal; FONT-FAMILY: SIMSUN; HEIGHT: 68px"></div></td>
+				</tr>
+			</table>
+			<button id="test">收集结果</button>
+		</div>
+	</body>
+</html>
